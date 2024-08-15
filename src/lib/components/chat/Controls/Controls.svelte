@@ -76,13 +76,12 @@
 
 			<hr class="my-2 border-gray-100 dark:border-gray-800" />
 
-			<Collapsible title={$i18n.t('Advanced Params')} open={true}>
-				<div class="text-sm mt-1.5" slot="content">
-					<div>
-						<AdvancedParams bind:params />
-					</div>
+		<Collapsible title={$i18n.t('Advanced Params')} open={true}>
+			<div class="text-sm mt-1.5" slot="content">
+				<div>
+					<AdvancedParams bind:params />
 				</div>
-			</Collapsible>
-        {/if}
+			</div>
+		</Collapsible>
 	</div>
 </div>
