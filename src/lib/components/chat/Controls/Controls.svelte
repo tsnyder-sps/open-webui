@@ -8,7 +8,7 @@
 	import Valves from '$lib/components/chat/Controls/Valves.svelte';
 	import FileItem from '$lib/components/common/FileItem.svelte';
 	import Collapsible from '$lib/components/common/Collapsible.svelte';
-    import { user } from '$lib/stores';
+	import { user } from '$lib/stores';
 
 	export let models = [];
 
@@ -62,7 +62,7 @@
 		</Collapsible>
 
 		<hr class="my-2 border-gray-100 dark:border-gray-800" />
-        {#if $user.role === 'admin'}
+		{#if $user.role === 'admin'}
 			<Collapsible title={$i18n.t('System Prompt')} open={true}>
 				<div class=" mt-1.5" slot="content">
 					<textarea
@@ -76,12 +76,13 @@
 
 			<hr class="my-2 border-gray-100 dark:border-gray-800" />
 
-		<Collapsible title={$i18n.t('Advanced Params')} open={true}>
-			<div class="text-sm mt-1.5" slot="content">
-				<div>
-					<AdvancedParams bind:params />
+			<Collapsible title={$i18n.t('Advanced Params')} open={true}>
+				<div class="text-sm mt-1.5" slot="content">
+					<div>
+						<AdvancedParams bind:params />
+					</div>
 				</div>
-			</div>
-		</Collapsible>
+			</Collapsible>
+		{/if}
 	</div>
 </div>
