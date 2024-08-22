@@ -27,6 +27,7 @@ export const tags = writable([]);
 
 export const models: Writable<Model[]> = writable([]);
 export const prompts: Writable<Prompt[]> = writable([]);
+export const forms: Writable<Form[]> = writable([]);
 export const documents: Writable<Document[]> = writable([]);
 
 export const tools = writable([]);
@@ -142,6 +143,14 @@ type TitleSettings = {
 };
 
 type Prompt = {
+	command: string;
+	user_id: string;
+	title: string;
+	content: string;
+	timestamp: number;
+};
+
+type Form = {
 	command: string;
 	user_id: string;
 	title: string;
