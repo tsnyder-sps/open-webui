@@ -75,11 +75,13 @@
 	export let availableToolIds = [];
 	export let selectedToolIds = [];
 	export let webSearchEnabled = false;
-	let name = '';
-	let date = '';
+	let formentry1 = '';
+	let formentry2 = '';
+	let formentry3 = '';
 
-	export let nameInputElement;
-	export let dateInputElement;
+	export let formentry1InputElement;
+	export let formentry2InputElement;
+	export let formentry3InputElement;
 
 	export let prompt = '';
 	export let messages = [];
@@ -572,7 +574,7 @@
 								</div>
 							{/if}
 
-							<div class=" flex self-center">
+							<div class="flex flex-col space-x-1 py-2">
 								<div class=" ml-0.5 self-end mb-1.5 flex space-x-1">
 									<InputMenu
 										bind:webSearchEnabled
@@ -616,33 +618,34 @@
 								<form
 									on:submit={(e) => {
 										e.preventDefault();
-										submitPrompt(`Name: ${name}\nDate: ${date}\nMessage: ${prompt}`);
+										submitPrompt(`My name is ${formentry1} and I love AI more than the color ${formentry2}.\n${formentry3}`);
 									}}
 								>
 									<div class="flex flex-col space-y-2">
 										<input
 											type="text"
-											id="name-input"
-											bind:this={nameInputElement}
+											id="entry1-input"
+											bind:this={formentry1InputElement}
 											class="bg-gray-50 dark:bg-gray-850 dark:text-gray-100 outline-none w-full py-2 px-1 rounded-xl"
 											placeholder="Enter your name"
-											bind:value={name}
+											bind:value={formentry1}
 										/>
 										<input
-											type="date"
-											id="date-input"
-											bind:this={dateInputElement}
+											type="text"
+											id="entry2-input"
+											bind:this={formentry2InputElement}
 											class="bg-gray-50 dark:bg-gray-850 dark:text-gray-100 outline-none w-full py-2 px-1 rounded-xl"
-											bind:value={date}
+											placeholder="Favorite color"
+											bind:value={formentry2}
 										/>
 										<textarea
 											id="chat-textarea"
-											bind:this={chatTextAreaElement}
+											bind:this={formentry3InputElement}
 											class="scrollbar-hidden bg-gray-50 dark:bg-gray-850 dark:text-gray-100 outline-none w-full py-3 px-1 rounded-xl resize-none h-[48px]"
 											placeholder={chatInputPlaceholder !== ''
 												? chatInputPlaceholder
-												: $i18n.t('Send a Message')}
-											bind:value={prompt}
+												: $i18n.t('Any additional instructions')}
+											bind:value={formentry3}
 											on:keypress={(e) => {
 												if (
 													!$mobile ||
@@ -656,7 +659,7 @@
 														e.preventDefault();
 													}
 													if (prompt !== '' && e.key === 'Enter' && !e.shiftKey) {
-														submitPrompt(`Name: ${name}\nDate: ${date}\nMessage: ${prompt}`);
+														submitPrompt(`My name is ${formentry1} and I love AI more than the color ${formentry2}.\n${formentry3}`);
 													}
 												}
 											}}
@@ -692,12 +695,14 @@
 												}
 											}}
 										/>
+										<div class="flex self-center">
 										<button
 											type="submit"
 											class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-xl"
 										>
-											Submit
+											Form it up
 										</button>
+										</div>
 									</div>
 								</form>
 
