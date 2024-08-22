@@ -75,6 +75,11 @@
 	export let availableToolIds = [];
 	export let selectedToolIds = [];
 	export let webSearchEnabled = false;
+	let name = '';
+	let date = '';
+
+	export let nameInputElement;
+	export let dateInputElement;
 
 	export let prompt = '';
 	export let messages = [];
@@ -567,7 +572,7 @@
 								</div>
 							{/if}
 
-							<div class=" flex">
+							<div class=" flex self-center">
 								<div class=" ml-0.5 self-end mb-1.5 flex space-x-1">
 									<InputMenu
 										bind:webSearchEnabled
@@ -608,174 +613,93 @@
 									</InputMenu>
 								</div>
 
-								<textarea
-									id="chat-textarea"
-									bind:this={chatTextAreaElement}
-									class="scrollbar-hidden bg-gray-50 dark:bg-gray-850 dark:text-gray-100 outline-none w-full py-3 px-1 rounded-xl resize-none h-[48px]"
-									placeholder={chatInputPlaceholder !== ''
-										? chatInputPlaceholder
-										: $i18n.t('Send a Message')}
-									bind:value={prompt}
-									on:keypress={(e) => {
-										if (
-											!$mobile ||
-											!(
-												'ontouchstart' in window ||
-												navigator.maxTouchPoints > 0 ||
-												navigator.msMaxTouchPoints > 0
-											)
-										) {
-											// Prevent Enter key from creating a new line
-											if (e.key === 'Enter' && !e.shiftKey) {
-												e.preventDefault();
-											}
-
-											// Submit the prompt when Enter key is pressed
-											if (prompt !== '' && e.key === 'Enter' && !e.shiftKey) {
-												submitPrompt(prompt);
-											}
-										}
+								<form
+									on:submit={(e) => {
+										e.preventDefault();
+										submitPrompt(`Name: ${name}\nDate: ${date}\nMessage: ${prompt}`);
 									}}
-									on:keydown={async (e) => {
-										const isCtrlPressed = e.ctrlKey || e.metaKey; // metaKey is for Cmd key on Mac
-
-										// Check if Ctrl + R is pressed
-										if (prompt === '' && isCtrlPressed && e.key.toLowerCase() === 'r') {
-											e.preventDefault();
-											console.log('regenerate');
-
-											const regenerateButton = [
-												...document.getElementsByClassName('regenerate-response-button')
-											]?.at(-1);
-
-											regenerateButton?.click();
-										}
-
-										if (prompt === '' && e.key == 'ArrowUp') {
-											e.preventDefault();
-
-											const userMessageElement = [
-												...document.getElementsByClassName('user-message')
-											]?.at(-1);
-
-											const editButton = [
-												...document.getElementsByClassName('edit-user-message-button')
-											]?.at(-1);
-
-											console.log(userMessageElement);
-
-											userMessageElement.scrollIntoView({ block: 'center' });
-											editButton?.click();
-										}
-
-										if (['/', '#', '@'].includes(prompt.charAt(0)) && e.key === 'ArrowUp') {
-											e.preventDefault();
-
-											(promptsElement || documentsElement || modelsElement).selectUp();
-
-											const commandOptionButton = [
-												...document.getElementsByClassName('selected-command-option-button')
-											]?.at(-1);
-											commandOptionButton.scrollIntoView({ block: 'center' });
-										}
-
-										if (['/', '#', '@'].includes(prompt.charAt(0)) && e.key === 'ArrowDown') {
-											e.preventDefault();
-
-											(promptsElement || documentsElement || modelsElement).selectDown();
-
-											const commandOptionButton = [
-												...document.getElementsByClassName('selected-command-option-button')
-											]?.at(-1);
-											commandOptionButton.scrollIntoView({ block: 'center' });
-										}
-
-										if (['/', '#', '@'].includes(prompt.charAt(0)) && e.key === 'Enter') {
-											e.preventDefault();
-
-											const commandOptionButton = [
-												...document.getElementsByClassName('selected-command-option-button')
-											]?.at(-1);
-
-											if (e.shiftKey) {
-												prompt = `${prompt}\n`;
-											} else if (commandOptionButton) {
-												commandOptionButton?.click();
-											} else {
-												document.getElementById('send-message-button')?.click();
-											}
-										}
-
-										if (['/', '#', '@'].includes(prompt.charAt(0)) && e.key === 'Tab') {
-											e.preventDefault();
-
-											const commandOptionButton = [
-												...document.getElementsByClassName('selected-command-option-button')
-											]?.at(-1);
-
-											commandOptionButton?.click();
-										} else if (e.key === 'Tab') {
-											const words = findWordIndices(prompt);
-
-											if (words.length > 0) {
-												const word = words.at(0);
-												const fullPrompt = prompt;
-
-												prompt = prompt.substring(0, word?.endIndex + 1);
-												await tick();
-
-												e.target.scrollTop = e.target.scrollHeight;
-												prompt = fullPrompt;
-												await tick();
-
-												e.preventDefault();
-												e.target.setSelectionRange(word?.startIndex, word.endIndex + 1);
-											}
-
-											e.target.style.height = '';
-											e.target.style.height = Math.min(e.target.scrollHeight, 200) + 'px';
-										}
-
-										if (e.key === 'Escape') {
-											console.log('Escape');
-											atSelectedModel = undefined;
-										}
-									}}
-									rows="1"
-									on:input={(e) => {
-										e.target.style.height = '';
-										e.target.style.height = Math.min(e.target.scrollHeight, 200) + 'px';
-										user = null;
-									}}
-									on:focus={(e) => {
-										e.target.style.height = '';
-										e.target.style.height = Math.min(e.target.scrollHeight, 200) + 'px';
-									}}
-									on:paste={(e) => {
-										const clipboardData = e.clipboardData || window.clipboardData;
-
-										if (clipboardData && clipboardData.items) {
-											for (const item of clipboardData.items) {
-												if (item.type.indexOf('image') !== -1) {
-													const blob = item.getAsFile();
-													const reader = new FileReader();
-
-													reader.onload = function (e) {
-														files = [
-															...files,
-															{
-																type: 'image',
-																url: `${e.target.result}`
-															}
-														];
-													};
-
-													reader.readAsDataURL(blob);
+								>
+									<div class="flex flex-col space-y-2">
+										<input
+											type="text"
+											id="name-input"
+											bind:this={nameInputElement}
+											class="bg-gray-50 dark:bg-gray-850 dark:text-gray-100 outline-none w-full py-2 px-1 rounded-xl"
+											placeholder="Enter your name"
+											bind:value={name}
+										/>
+										<input
+											type="date"
+											id="date-input"
+											bind:this={dateInputElement}
+											class="bg-gray-50 dark:bg-gray-850 dark:text-gray-100 outline-none w-full py-2 px-1 rounded-xl"
+											bind:value={date}
+										/>
+										<textarea
+											id="chat-textarea"
+											bind:this={chatTextAreaElement}
+											class="scrollbar-hidden bg-gray-50 dark:bg-gray-850 dark:text-gray-100 outline-none w-full py-3 px-1 rounded-xl resize-none h-[48px]"
+											placeholder={chatInputPlaceholder !== ''
+												? chatInputPlaceholder
+												: $i18n.t('Send a Message')}
+											bind:value={prompt}
+											on:keypress={(e) => {
+												if (
+													!$mobile ||
+													!(
+														'ontouchstart' in window ||
+														navigator.maxTouchPoints > 0 ||
+														navigator.msMaxTouchPoints > 0
+													)
+												) {
+													if (e.key === 'Enter' && !e.shiftKey) {
+														e.preventDefault();
+													}
+													if (prompt !== '' && e.key === 'Enter' && !e.shiftKey) {
+														submitPrompt(`Name: ${name}\nDate: ${date}\nMessage: ${prompt}`);
+													}
 												}
-											}
-										}
-									}}
-								/>
+											}}
+											rows="1"
+											on:input={(e) => {
+												e.target.style.height = '';
+												e.target.style.height = Math.min(e.target.scrollHeight, 200) + 'px';
+												user = null;
+											}}
+											on:focus={(e) => {
+												e.target.style.height = '';
+												e.target.style.height = Math.min(e.target.scrollHeight, 200) + 'px';
+											}}
+											on:paste={(e) => {
+												const clipboardData = e.clipboardData || window.clipboardData;
+												if (clipboardData && clipboardData.items) {
+													for (const item of clipboardData.items) {
+														if (item.type.indexOf('image') !== -1) {
+															const blob = item.getAsFile();
+															const reader = new FileReader();
+															reader.onload = function (e) {
+																files = [
+																	...files,
+																	{
+																		type: 'image',
+																		url: `${e.target.result}`
+																	}
+																];
+															};
+															reader.readAsDataURL(blob);
+														}
+													}
+												}
+											}}
+										/>
+										<button
+											type="submit"
+											class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-xl"
+										>
+											Submit
+										</button>
+									</div>
+								</form>
 
 								<div class="self-end mb-2 flex space-x-1 mr-1">
 									{#if messages.length == 0 || messages.at(-1).done == true}
