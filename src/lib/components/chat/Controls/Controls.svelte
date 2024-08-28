@@ -1,4 +1,4 @@
-<script>
+<script lang="ts">
 	import { createEventDispatcher, getContext } from 'svelte';
 	const dispatch = createEventDispatcher();
 	const i18n = getContext('i18n');
@@ -9,9 +9,7 @@
 	import FileItem from '$lib/components/common/FileItem.svelte';
 	import Collapsible from '$lib/components/common/Collapsible.svelte';
 	import { user } from '$lib/stores';
-
 	export let models = [];
-
 	export let chatFiles = [];
 	export let params = {};
 </script>
