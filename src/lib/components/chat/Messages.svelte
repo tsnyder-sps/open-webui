@@ -1,16 +1,18 @@
 <script lang="ts">
 	import { v4 as uuidv4 } from 'uuid';
 	import { chats, config, settings, user as _user, mobile, currentChatPage } from '$lib/stores';
-	import { tick, getContext, onMount } from 'svelte';
+	import { tick, getContext, onMount, createEventDispatcher } from 'svelte';
+	const dispatch = createEventDispatcher();
 
 	import { toast } from 'svelte-sonner';
 	import { getChatList, updateChatById } from '$lib/apis/chats';
 	import { copyToClipboard, findWordIndices } from '$lib/utils';
 
-	import Placeholder from './Messages/Placeholder.svelte';
 	import Message from './Messages/Message.svelte';
 	import Loader from '../common/Loader.svelte';
 	import Spinner from '../common/Spinner.svelte';
+
+	import ChatPlaceholder from './ChatPlaceholder.svelte';
 
 	const i18n = getContext('i18n');
 
@@ -27,8 +29,10 @@
 	export let continueResponse: Function;
 	export let regenerateResponse: Function;
 	export let mergeResponses: Function;
+
 	export let chatActionHandler: Function;
 	export let showMessage: Function = () => {};
+	export let submitMessage: Function = () => {};
 
 	export let readOnly = false;
 
@@ -77,10 +81,12 @@
 		element.scrollTop = element.scrollHeight;
 	};
 
-	const updateChatHistory = async () => {
+	const updateChat = async () => {
+		history = history;
 		await tick();
 		await updateChatById(localStorage.token, chatId, {
-			history: history
+			history: history,
+			messages: messages
 		});
 
 		currentChatPage.set(1);
@@ -191,7 +197,7 @@
 			rating: rating
 		};
 
-		await updateChatHistory();
+		await updateChat();
 	};
 
 	const editMessage = async (messageId, content, submit = true) => {
@@ -228,7 +234,7 @@
 			} else {
 				// Edit user message
 				history.messages[messageId].content = content;
-				await updateChatHistory();
+				await updateChat();
 			}
 		} else {
 			if (submit) {
@@ -257,14 +263,23 @@
 					];
 				}
 
-				await updateChatHistory();
+				await updateChat();
 			} else {
 				// Edit response message
 				history.messages[messageId].originalContent = history.messages[messageId].content;
 				history.messages[messageId].content = content;
-				await updateChatHistory();
+				await updateChat();
 			}
 		}
+	};
+
+	const actionMessage = async (actionId, message, event = null) => {
+		await chatActionHandler(chatId, actionId, message.model, message.id, event);
+	};
+
+	const saveMessage = async (messageId, message) => {
+		history.messages[messageId] = message;
+		await updateChat();
 	};
 
 	const deleteMessage = async (messageId) => {
@@ -302,13 +317,23 @@
 		showMessage({ id: parentMessageId });
 
 		// Update the chat
-		await updateChatHistory();
+		await updateChat();
+	};
+
+	const triggerScroll = () => {
+		if (autoScroll) {
+			const element = document.getElementById('messages-container');
+			autoScroll = element.scrollHeight - element.scrollTop <= element.clientHeight + 50;
+			setTimeout(() => {
+				scrollToBottom();
+			}, 100);
+		}
 	};
 </script>
 
-<div class="h-full flex">
+<div class="h-full flex pt-8">
 	{#if Object.keys(history?.messages ?? {}).length == 0}
-		<Placeholder
+		<ChatPlaceholder
 			modelIds={selectedModels}
 			submitPrompt={async (p) => {
 				let text = p;
@@ -326,20 +351,14 @@
 
 				await tick();
 
-				const chatInputElement = document.getElementById('chat-textarea');
-				if (chatInputElement) {
+				const chatInputContainerElement = document.getElementById('chat-input-container');
+				if (chatInputContainerElement) {
 					prompt = p;
 
-					chatInputElement.style.height = '';
-					chatInputElement.style.height = Math.min(chatInputElement.scrollHeight, 200) + 'px';
-					chatInputElement.focus();
-
-					const words = findWordIndices(prompt);
-
-					if (words.length > 0) {
-						const word = words.at(0);
-						chatInputElement.setSelectionRange(word?.startIndex, word.endIndex + 1);
-					}
+					chatInputContainerElement.style.height = '';
+					chatInputContainerElement.style.height =
+						Math.min(chatInputContainerElement.scrollHeight, 200) + 'px';
+					chatInputContainerElement.focus();
 				}
 
 				await tick();
@@ -374,25 +393,18 @@
 							{user}
 							{showPreviousMessage}
 							{showNextMessage}
+							{updateChat}
 							{editMessage}
 							{deleteMessage}
 							{rateMessage}
+							{actionMessage}
+							{saveMessage}
+							{submitMessage}
 							{regenerateResponse}
 							{continueResponse}
 							{mergeResponses}
-							{updateChatHistory}
-							{chatActionHandler}
+							{triggerScroll}
 							{readOnly}
-							on:scroll={() => {
-								if (autoScroll) {
-									const element = document.getElementById('messages-container');
-									autoScroll =
-										element.scrollHeight - element.scrollTop <= element.clientHeight + 50;
-									setTimeout(() => {
-										scrollToBottom();
-									}, 100);
-								}
-							}}
 						/>
 					{/each}
 				</div>

@@ -11,7 +11,6 @@
 	import MultiResponseMessages from './MultiResponseMessages.svelte';
 	import ResponseMessage from './ResponseMessage.svelte';
 	import UserMessage from './UserMessage.svelte';
-	import { updateChatById } from '$lib/apis/chats';
 
 	export let chatId;
 	export let idx = 0;
@@ -21,28 +20,23 @@
 
 	export let user;
 
-	export let updateChatHistory;
-	export let chatActionHandler;
-
 	export let showPreviousMessage;
 	export let showNextMessage;
+	export let updateChat;
 
 	export let editMessage;
+	export let saveMessage;
 	export let deleteMessage;
 	export let rateMessage;
+	export let actionMessage;
+	export let submitMessage;
 
 	export let regenerateResponse;
 	export let continueResponse;
-
-	// MultiResponseMessages
 	export let mergeResponses;
 
-	export let autoScroll = false;
+	export let triggerScroll;
 	export let readOnly = false;
-
-	onMount(() => {
-		// console.log('message', idx);
-	});
 </script>
 
 <div
@@ -65,50 +59,26 @@
 				{showPreviousMessage}
 				{showNextMessage}
 				{editMessage}
-				on:delete={() => deleteMessage(messageId)}
+				{deleteMessage}
 				{readOnly}
 			/>
 		{:else if (history.messages[history.messages[messageId].parentId]?.models?.length ?? 1) === 1}
 			<ResponseMessage
+				{chatId}
 				{history}
 				{messageId}
 				isLastMessage={messageId === history.currentId}
 				siblings={history.messages[history.messages[messageId].parentId]?.childrenIds ?? []}
 				{showPreviousMessage}
 				{showNextMessage}
+				{updateChat}
 				{editMessage}
+				{saveMessage}
 				{rateMessage}
+				{actionMessage}
+				{submitMessage}
 				{continueResponse}
 				{regenerateResponse}
-				on:action={async (e) => {
-					console.log('action', e);
-					const message = history.messages[messageId];
-					if (typeof e.detail === 'string') {
-						await chatActionHandler(chatId, e.detail, message.model, message.id);
-					} else {
-						const { id, event } = e.detail;
-						await chatActionHandler(chatId, id, message.model, message.id, event);
-					}
-				}}
-				on:update={async (e) => {
-					console.log('update', e);
-					updateChatHistory();
-				}}
-				on:save={async (e) => {
-					console.log('save', e);
-
-					const message = e.detail;
-					if (message) {
-						history.messages[message.id] = message;
-						await updateChatById(localStorage.token, chatId, {
-							history: history
-						});
-					} else {
-						await updateChatById(localStorage.token, chatId, {
-							history: history
-						});
-					}
-				}}
 				{readOnly}
 			/>
 		{:else}
@@ -117,48 +87,16 @@
 				{chatId}
 				{messageId}
 				isLastMessage={messageId === history?.currentId}
-				{rateMessage}
+				{updateChat}
 				{editMessage}
+				{saveMessage}
+				{rateMessage}
+				{actionMessage}
+				{submitMessage}
 				{continueResponse}
 				{regenerateResponse}
 				{mergeResponses}
-				on:action={async (e) => {
-					console.log('action', e);
-					const message = history.messages[messageId];
-					if (typeof e.detail === 'string') {
-						await chatActionHandler(chatId, e.detail, message.model, message.id);
-					} else {
-						const { id, event } = e.detail;
-						await chatActionHandler(chatId, id, message.model, message.id, event);
-					}
-				}}
-				on:update={async (e) => {
-					console.log('update', e);
-					updateChatHistory();
-				}}
-				on:save={async (e) => {
-					console.log('save', e);
-
-					const message = e.detail;
-					if (message) {
-						history.messages[message.id] = message;
-						await updateChatById(localStorage.token, chatId, {
-							history: history
-						});
-					} else {
-						await updateChatById(localStorage.token, chatId, {
-							history: history
-						});
-					}
-				}}
-				on:change={async () => {
-					await tick();
-					await updateChatById(localStorage.token, chatId, {
-						history: history
-					});
-
-					dispatch('scroll');
-				}}
+				{triggerScroll}
 				{readOnly}
 			/>
 		{/if}
